@@ -1,8 +1,8 @@
-﻿Shader "Learning/BasicDiffuse" 
+﻿Shader "Learning/Ramp2" 
 {
 	Properties 
 	{
-		//_MainTex ("Base (RGB)", 2D) = "white" {}
+		_RampTex ("Ramp Texture", 2D) = "white" {}
 		_EmissiveColor("Emissive Color", Color) = (0.5,1,1,1)
 		_AmbientColor("Ambient Color", Color) = (0.5, 0.5, 0.5, 0.5)
 		_MySliderValue("This is a Slider", Range(0,10)) = 2.5
@@ -18,6 +18,7 @@
 		float4 _EmissiveColor;
 		float4 _AmbientColor;
 		float _MySliderValue;
+		uniform sampler2D _RampTex;
 
 		struct Input 
 		{
@@ -32,12 +33,15 @@
 			o.Alpha = c.a;
 		}
 
-		inline float4 LightingBasicDiffuse(SurfaceOutput s, fixed3 lightDir, fixed atten)
+		inline float4 LightingBasicDiffuse(SurfaceOutput s, fixed3 lightDir, half3 viewDir, fixed atten)
 		{
-			float difLight = max(0, dot(s.Normal, lightDir));
+			float difLight = dot(s.Normal, lightDir);
+			float rimLight = dot(s.Normal, viewDir);
 			float hLambert = difLight*0.5 + 0.5;
+			float3 ramp = tex2D(_RampTex, float2(hLambert, rimLight)).rgb;
+
 			float4 col;
-			col.rgb = s.Albedo*_LightColor0.rgb*(hLambert*atten*2);
+			col.rgb = s.Albedo*_LightColor0.rgb*(ramp);
 			col.a = s.Alpha;
 			return col; 
 		}
